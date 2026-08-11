@@ -1,0 +1,4 @@
+"churn_risk","total_customers","avg_spend","avg_history","avg_loyalty","discount_rate"
+"High","441","60.05","13.81","0.305","0.71"
+"Medium","1546","59.1","20.33","0.387","0.47"
+"Low","1913","60.24","32.07","0.523","0.33"

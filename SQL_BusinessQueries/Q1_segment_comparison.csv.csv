@@ -1,0 +1,5 @@
+"customer_segment","total_customers","avg_spend","avg_history","avg_loyalty","discount_rate"
+"Loyal","556","60.58","43.95","0.588","0"
+"Regular","2596","59.81","22.55","0.436","0.39"
+"Discount Driven","593","58.9","26.4","0.41","1"
+"New Customer","155","59.34","1.46","0.199","0.41"

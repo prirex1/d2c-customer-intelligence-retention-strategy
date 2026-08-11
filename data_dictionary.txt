@@ -1,0 +1,64 @@
+
+DATA DICTIONARY — ENGINEERED FEATURES
+D2C Fashion Brand Customer Intelligence Project
+===============================================
+
+1. frequency_rank          [int: 1, 2, 4, 5, 7]
+   Formula : Weekly=7, Fortnightly=5, Monthly=4, Quarterly=2, Annually=1
+   Meaning : numeric proxy for purchase frequency; higher = shops more often
+   Note    : Bi-Weekly standardised → Fortnightly; Every 3 Months → Quarterly
+
+2. customer_segment        [New Customer / Discount Driven / Loyal / Regular]
+   Formula : assigned in order —
+             previous_purchases ≤ 2 → New Customer
+             discount_applied=1 AND promo_code_used=1 AND subscription=0 → Discount Driven
+             discount_applied=0 AND previous_purchases ≥ Q75 (38) AND segment=Regular → Loyal
+             all others → Regular
+   Meaning : mutually exclusive behavioral segments for targeting and retention strategy
+
+3. value_tier              [Bronze / Silver / Gold]
+   Formula : value_composite = purchase_amount × log(previous_purchases + 1)
+             quantile-based 3-way split (equal ~1300 customers per tier)
+   Meaning : customer ranking by revenue contribution proxy
+
+4. satisfaction_flag       [Low / Mid / High]
+   Formula : review_rating < 3.1 → Low, 3.1–4.4 → Mid, > 4.4 → High
+             (thresholds = 25th and 75th percentile of rating distribution)
+   Caveat  : 37 missing ratings filled with column median (3.8)
+
+5. loyalty_A               [float, 0.0–1.0]
+   Formula : 0.50 × norm(previous_purchases) +
+             0.35 × norm(frequency_rank) +
+             0.15 × subscription_status
+   Meaning : behavioral loyalty — rewards purchase history and frequency
+
+6. loyalty_B               [float, 0.0–0.75]
+   Formula : 0.40 × norm(review_rating) +
+             0.35 × (1 - discount_applied) +
+             0.25 × subscription_status
+   Meaning : commitment loyalty — rewards satisfaction and promo-independence
+
+7. loyalty_score           [float, 0.0–1.0]  ← ADOPTED DEFINITION
+   = loyalty_A
+   Justification : loyalty_A showed stronger correlation with all three behavioral
+                   markers of loyalty vs loyalty_B —
+                   previous_purchases (r=0.75 vs -0.001),
+                   frequency_rank (r=0.58 vs 0.002),
+                   subscription_status (r=0.36 vs -0.062)
+
+8. loyalty_label           [Low / Mid / High]
+   Formula : loyalty_score ≤ 0.33 → Low, 0.33–0.66 → Mid, > 0.66 → High
+
+9. churn_risk              [Low / Medium / High]
+   Formula : count of signals present:
+             previous_purchases ≤ Q25 (13) → +1
+             satisfaction_flag = Low      → +1
+             promo_dependency_score > 0.75 → +1
+             0 signals = Low, 1–2 = Medium, 3 = High
+   Caveat  : no actual churn label exists in dataset; this is a behavioral proxy only
+
+10. high_value_at_risk     [0 / 1]
+    Formula : 1 if value_tier = Gold AND satisfaction_flag = Low, else 0
+    Meaning : Gold-tier customers who are actively dissatisfied —
+              high revenue contribution but silent attrition risk
+    Dataset : 316 customers flagged (24.3% of Gold tier)
